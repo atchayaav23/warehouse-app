@@ -13,10 +13,10 @@ app.use('/api/products',  require('./routes/products'));
 app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/logs',      require('./routes/logs'));
 
-// ✅ Serve React Frontend
-app.use(express.static(path.join(__dirname, 'client/build')));
+// ✅ Serve React — client folder is next to server folder
+app.use(express.static(path.join(__dirname, '../client/build')));
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
+  res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
