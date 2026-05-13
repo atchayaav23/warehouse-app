@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import Modal from '../components/Modal';
 
-const API = 'http://localhost:5000/api';
+const API =  '/api/products';
 
 const emptyForm = { name: '', barcode: '', quantity: 0, low_stock_threshold: 10, supplier_id: '' };
 

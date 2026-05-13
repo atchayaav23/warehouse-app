@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Modal from '../components/Modal';
 
-const API = 'http://localhost:5000/api/suppliers';
+const API = '/api/suppliers';
 const empty = { name: '', email: '', phone: '', address: '' };
 
 export default function Suppliers() {

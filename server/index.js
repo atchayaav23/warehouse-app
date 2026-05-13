@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
@@ -12,9 +13,10 @@ app.use('/api/products',  require('./routes/products'));
 app.use('/api/suppliers', require('./routes/suppliers'));
 app.use('/api/logs',      require('./routes/logs'));
 
-// Health check
-app.get('/', (req, res) => {
-  res.json({ message: 'Inventory API is running' });
+// ✅ Serve React Frontend
+app.use(express.static(path.join(__dirname, 'client/build')));
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'client/build', 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
