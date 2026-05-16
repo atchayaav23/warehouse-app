@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API = '/api/logs';
-
+const API = 'http://localhost:5000/api/logs';
 export default function Logs() {
   const [logs, setLogs]       = useState([]);
   const [loading, setLoading] = useState(true);

@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import Modal from '../components/Modal';
 
-const API =  '/api/products';
+const API = 'http://localhost:5000/api';
 
 const emptyForm = { name: '', barcode: '', quantity: 0, low_stock_threshold: 10, supplier_id: '' };
 
@@ -12,7 +12,7 @@ export default function Products() {
   const [loading, setLoading]     = useState(true);
   const [showAdd, setShowAdd]     = useState(false);
   const [showEdit, setShowEdit]   = useState(null);
-  const [showStock, setShowStock] = useState(null); // { product, type: 'in'|'out' }
+  const [showStock, setShowStock] = useState(null);
   const [form, setForm]           = useState(emptyForm);
   const [stockQty, setStockQty]   = useState(1);
   const [stockNote, setStockNote] = useState('');
@@ -124,12 +124,11 @@ export default function Products() {
           <input type="number" style={inputStyle} value={form.low_stock_threshold} onChange={e => setForm({ ...form, low_stock_threshold: Number(e.target.value) })} min="0" />
         </div>
       </div>
-      
-     <label style={{ fontSize: '12px', color: '#64748b' }}>Supplier</label>
-<select style={inputStyle} value={form.supplier_id} onChange={e => setForm({ ...form, supplier_id: e.target.value })}>
-  <option value="">-- Select Supplier --</option>
-  {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-</select>
+      <label style={{ fontSize: '12px', color: '#64748b' }}>Supplier</label>
+      <select style={inputStyle} value={form.supplier_id} onChange={e => setForm({ ...form, supplier_id: e.target.value })}>
+        <option value="">-- Select Supplier --</option>
+        {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+      </select>
     </>
   );
 
