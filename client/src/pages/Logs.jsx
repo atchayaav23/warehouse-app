@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-const API = 'http://localhost:5000/api/logs';
+const API = 'https://gunakani3005-project.onrender.com/api/logs';
 export default function Logs() {
   const [logs, setLogs]       = useState([]);
   const [loading, setLoading] = useState(true);

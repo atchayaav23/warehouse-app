@@ -9,7 +9,7 @@ export default function App() {
   const [alerts, setAlerts] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/products/alerts/low-stock')
+    axios.get('https://gunakani3005-project.onrender.com/api/products/alerts/low-stock')
       .then(res => setAlerts(res.data))
       .catch(() => {});
   }, []);

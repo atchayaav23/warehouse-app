@@ -21,7 +21,7 @@ npm install
 # Edit .env with your DB password if needed
 npm run dev
 ```
-Server runs at: http://localhost:5000
+Server runs at: https://gunakani3005-project.onrender.com
 
 ### 3. Frontend
 ```bash
