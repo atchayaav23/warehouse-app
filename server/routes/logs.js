@@ -1,89 +1,59 @@
 const router = require('express').Router();
-const db = require('../db');
+const mongoose = require('mongoose');
+const { Product } = require('./products');
 
-// GET all logs (with product name)
+// Schema
+const Log = mongoose.model('Log', new mongoose.Schema({
+  product_id: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+  type: { type: String, enum: ['in', 'out'], required: true },
+  quantity: { type: Number, required: true },
+  note: String,
+}, { timestamps: true }));
+
+// GET all logs
 router.get('/', async (req, res) => {
   try {
-    const [rows] = await db.query(`
-      SELECT l.*, p.name AS product_name
-      FROM inventory_logs l
-      JOIN products p ON l.product_id = p.id
-      ORDER BY l.created_at DESC
-    `);
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    const logs = await Log.find().populate('product_id', 'name').sort({ createdAt: -1 });
+    res.json(logs.map(l => ({
+      id: l._id, product_id: l.product_id?._id,
+      product_name: l.product_id?.name,
+      type: l.type, quantity: l.quantity,
+      note: l.note, created_at: l.createdAt
+    })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// GET logs for a specific product
+// GET logs for specific product
 router.get('/product/:id', async (req, res) => {
   try {
-    const [rows] = await db.query(
-      'SELECT * FROM inventory_logs WHERE product_id = ? ORDER BY created_at DESC',
-      [req.params.id]
-    );
-    res.json(rows);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    const logs = await Log.find({ product_id: req.params.id }).sort({ createdAt: -1 });
+    res.json(logs.map(l => ({ id: l._id, ...l.toObject() })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST stock IN — increases quantity
+// POST stock IN
 router.post('/in', async (req, res) => {
   const { product_id, quantity, note } = req.body;
   if (!product_id || !quantity) return res.status(400).json({ error: 'product_id and quantity are required' });
-
-  const conn = await db.getConnection();
   try {
-    await conn.beginTransaction();
-    await conn.query(
-      'UPDATE products SET quantity = quantity + ? WHERE id = ?',
-      [quantity, product_id]
-    );
-    await conn.query(
-      'INSERT INTO inventory_logs (product_id, type, quantity, note) VALUES (?, "in", ?, ?)',
-      [product_id, quantity, note || null]
-    );
-    await conn.commit();
+    await Product.findByIdAndUpdate(product_id, { $inc: { quantity: quantity } });
+    await Log.create({ product_id, type: 'in', quantity, note: note || null });
     res.json({ message: 'Stock added successfully' });
-  } catch (err) {
-    await conn.rollback();
-    res.status(500).json({ error: err.message });
-  } finally {
-    conn.release();
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-// POST stock OUT — decreases quantity
+// POST stock OUT
 router.post('/out', async (req, res) => {
   const { product_id, quantity, note } = req.body;
   if (!product_id || !quantity) return res.status(400).json({ error: 'product_id and quantity are required' });
-
-  const conn = await db.getConnection();
   try {
-    // Check current stock first
-    const [rows] = await conn.query('SELECT quantity FROM products WHERE id = ?', [product_id]);
-    if (rows.length === 0) return res.status(404).json({ error: 'Product not found' });
-    if (rows[0].quantity < quantity) return res.status(400).json({ error: 'Insufficient stock' });
-
-    await conn.beginTransaction();
-    await conn.query(
-      'UPDATE products SET quantity = quantity - ? WHERE id = ?',
-      [quantity, product_id]
-    );
-    await conn.query(
-      'INSERT INTO inventory_logs (product_id, type, quantity, note) VALUES (?, "out", ?, ?)',
-      [product_id, quantity, note || null]
-    );
-    await conn.commit();
+    const product = await Product.findById(product_id);
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    if (product.quantity < quantity) return res.status(400).json({ error: 'Insufficient stock' });
+    await Product.findByIdAndUpdate(product_id, { $inc: { quantity: -quantity } });
+    await Log.create({ product_id, type: 'out', quantity, note: note || null });
     res.json({ message: 'Stock removed successfully' });
-  } catch (err) {
-    await conn.rollback();
-    res.status(500).json({ error: err.message });
-  } finally {
-    conn.release();
-  }
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
-module.exports = router;
+module.exports = { router };
